@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="uz" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NUR SHOP — Zamonaviy Noutbuklar Do'koni</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        darkbg: '#090d16',
+                        cardbg: '#111827',
+                        accent: '#3b82f6',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #090d16;
+            color: #f3f4f6;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+        /* Glassmorphism va zamonaviy effektlar */
+        .glass {
+            background: rgba(17, 24, 39, 0.72);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-card {
+            background: linear-gradient(145deg, rgba(24, 33, 52, 0.85), rgba(13, 19, 33, 0.95));
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(59, 130, 246, 0.45);
+            box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.6), 0 0 20px rgba(59, 130, 246, 0.15);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #60a5fa 0%, #a855f7 50%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .payment-card {
+            transition: all 0.2s ease;
+        }
+        .payment-card.selected {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.14);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.35);
+        }
+        /* Maxsus scrollbar */
+        ::-webkit-scrollbar {
+            width: 7px;
+            height: 7px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #090d16;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1f2937;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3b82f6;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-blue-500 selection:text-white">
+
+    <!-- Toast xabarnomalar konteyneri -->
+    <div id="toastContainer" class="fixed top-5 right-5 z-[100] flex flex-col gap-3 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+    <!-- Yuqori Navigatsiya Paneli -->
+    <header class="sticky top-0 z-40 glass border-b border-slate-800/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 py-3.5 flex items-center justify-between gap-4">
+            <!-- Brend Logotipi -->
+            <a href="#" onclick="switchView('store'); return false;" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/25 group-hover:scale-105 transition">
+                    <i class="fa-solid fa-laptop-code text-white text-lg"></i>
+                </div>
+                <div>
+                    <span class="text-xl font-extrabold tracking-tight text-white">NUR <span class="text-blue-400">SHOP</span></span>
+                    <p class="text-[11px] text-slate-400 leading-none hidden sm:block">Premium Noutbuklar Markazi</p>
+                </div>
+            </a>
+
+            <!-- Qidiruv maydoni (Desktop) -->
+            <div class="hidden md:flex flex-1 max-w-md relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="Model, protsessor yoki xotira bo'yicha qidirish..." class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
+            </div>
+
+            <!-- O'ng tugmalar: Admin Panel va Savat -->
+            <div class="flex items-center gap-2.5 sm:gap-3">
+                <button onclick="openAdminGate()" id="adminNavBtn" class="px-3.5 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700/70 text-slate-200 text-xs sm:text-sm font-medium flex items-center gap-2 transition">
+                    <i class="fa-solid fa-shield-halved text-purple-400"></i>
+                    <span>Admin Panel</span>
+                </button>
+
+                <button onclick="toggleCart(true)" class="relative px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs sm:text-sm font-semibold flex items-center gap-2 shadow-lg shadow-blue-600/25 transition">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span class="hidden sm:inline">Savat</span>
+                    <span id="cartBadge" class="bg-white text-blue-700 text-xs font-extrabold px-2 py-0.5 rounded-full">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ASOSIY DO'KON KO'RINISHI -->
+    <main id="storeView" class="flex-1">
+        <!-- Hero Banner -->
+        <section class="relative overflow-hidden border-b border-slate-800/60">
+            <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-600/20 via-purple-900/10 to-transparent pointer-events-none"></div>
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 relative z-10">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                    <div class="lg:col-span-7 space-y-5">
+                        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/25 text-blue-400 text-xs font-semibold">
+                            <span class="w-2 h-2 rounded-full bg-blue-400 animate-ping"></span>
+                            Rasmiy kafolat va O'zbekiston bo'ylab tezkor yetkazib berish
+                        </div>
+                        <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
+                            Kelajak texnologiyalari <span class="gradient-text">NUR SHOP</span> bilan qo'lingizda
+                        </h1>
+                        <p class="text-slate-300 text-sm sm:text-base max-w-2xl leading-relaxed">
+                            Dasturlash, o'yinlar, dizayn va biznes uchun eng so'nggi avlod noutbuklarini qulay narxlarda xarid qiling. <strong class="text-white">Click, Humo, Uzcard va Visa</strong> orqali bir zumda xavfsiz to'lov!
+                        </p>
+                        <div class="flex flex-wrap items-center gap-3 pt-2">
+                            <a href="#catalogSection" class="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-lg shadow-blue-600/30 transition flex items-center gap-2">
+                                <span>Katalogni ko'rish</span>
+                                <i class="fa-solid fa-arrow-down"></i>
+                            </a>
+                            <div class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-300">
+                                <i class="fa-solid fa-credit-card text-emerald-400"></i>
+                                <span>Click • Humo • Uzcard • Visa</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hero Vizual Karta -->
+                    <div class="lg:col-span-5">
+                        <div class="relative rounded-2xl overflow-hidden border border-slate-700/60 shadow-2xl bg-slate-900/90 p-4">
+                            <img src="https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=900&q=80" onerror="this.src='https://placehold.co/800x500/111827/60a5fa?text=NUR+SHOP+Pro+Laptops'" alt="Flagman Noutbuk" class="w-full h-56 sm:h-64 object-cover rounded-xl">
+                            <div class="mt-4 flex items-center justify-between">
+                                <div>
+                                    <span class="text-xs text-blue-400 font-semibold uppercase tracking-wider">Hafta tanlovi</span>
+                                    <h3 class="text-white font-bold text-base">MacBook Pro 16" & ASUS ROG Strix</h3>
+                                </div>
+                                <span class="px-3 py-1 rounded-lg bg-emerald-500/15 text-emerald-400 text-xs font-bold border border-emerald-500/30">
+                                    Sotuvda mavjud
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Katalog va Filtrlar Bo'limi -->
+        <section id="catalogSection" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            <!-- Mobil qidiruv -->
+            <div class="md:hidden mb-5 relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                <input type="text" id="mobileSearchInput" oninput="handleSearch(this.value)" placeholder="Noutbuk qidirish..." class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-blue-500">
+            </div>
+
+            <!-- Sarlavha va Kategoriya Tugmalari -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                <div>
+                    <h2 class="text-2xl font-bold text-white">Noutbuklar Katalogi</h2>
+                    <p class="text-slate-400 text-sm mt-0.5">O'zingizga mos bo'lgan modelni tanlang va onlayn buyurtma bering</p>
+                </div>
+
+                <!-- Kategoriya filtrlari -->
+                <div id="categoryTabs" class="flex flex-wrap gap-2">
+                    <button onclick="filterCategory('Barchasi')" class="cat-btn active px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-blue-600 text-white transition" data-cat="Barchasi">Barchasi</button>
+                    <button onclick="filterCategory('Gaming')" class="cat-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-800/90 text-slate-300 hover:bg-slate-700 transition" data-cat="Gaming">🎮 Gaming</button>
+                    <button onclick="filterCategory('Ofis / Ultrabook')" class="cat-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-800/90 text-slate-300 hover:bg-slate-700 transition" data-cat="Ofis / Ultrabook">💼 Ofis / Ultrabook</button>
+                    <button onclick="filterCategory('Apple MacBook')" class="cat-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-800/90 text-slate-300 hover:bg-slate-700 transition" data-cat="Apple MacBook">🍎 Apple MacBook</button>
+                    <button onclick="filterCategory('Hamyonbop')" class="cat-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-800/90 text-slate-300 hover:bg-slate-700 transition" data-cat="Hamyonbop">⚡ Hamyonbop</button>
+                </div>
+            </div>
+
+            <!-- Noutbuklar Grid Ro'yxati -->
+            <div id="productsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <!-- JavaScript orqali dinamik to'ldiriladi -->
+            </div>
+
+            <!-- Bo'sh natija xabari -->
+            <div id="emptyProductsState" class="hidden text-center py-16 glass rounded-2xl">
+                <i class="fa-solid fa-laptop-medical text-4xl text-slate-500 mb-3"></i>
+                <h3 class="text-lg font-bold text-white">Noutbuk topilmadi</h3>
+                <p class="text-slate-400 text-sm mt-1">Qidiruv so'zini o'zgartiring yoki barcha kategoriyalarni tanlang.</p>
+                <button onclick="resetFilters()" class="mt-4 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition">Barchasini ko'rsatish</button>
+            </div>
+        </section>
+    </main>
+
+    <!-- ADMIN PANEL KO'RINISHI -->
+    <section id="adminView" class="hidden flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Admin Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+            <div>
+                <div class="flex items-center gap-2.5">
+                    <span class="px-2.5 py-1 rounded-lg bg-purple-500/20 text-purple-400 text-xs font-bold border border-purple-500/30">BOSHQARUV MARKAZI</span>
+                    <h1 class="text-2xl font-extrabold text-white">NUR SHOP Admin Panel</h1>
+                </div>
+                <p class="text-slate-400 text-sm mt-1">Noutbuklar, narxlar, buyurtmalar va Telegram bot integratsiyasini boshqaring</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="switchView('store')" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold flex items-center gap-2 transition">
+                    <i class="fa-solid fa-store text-blue-400"></i>
+                    <span>Do'konga qaytish</span>
+                </button>
+                <button onclick="logoutAdmin()" class="px-4 py-2.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 border border-rose-500/30 text-sm font-semibold transition">
+                    <i class="fa-solid fa-right-from-bracket"></i> Chiqish
+                </button>
+            </div>
+        </div>
+
+        <!-- Statistika Kartalari -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 my-6">
+            <div class="glass rounded-2xl p-5">
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-400 text-xs font-medium">Jami Noutbuklar</span>
+                    <i class="fa-solid fa-laptop text-blue-400 bg-blue-500/15 p-2.5 rounded-xl"></i>
+                </div>
+                <p id="statTotalProducts" class="text-2xl font-extrabold text-white mt-2">0</p>
+            </div>
+            <div class="glass rounded-2xl p-5">
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-400 text-xs font-medium">Jami Buyurtmalar</span>
+                    <i class="fa-solid fa-bag-shopping text-purple-400 bg-purple-500/15 p-2.5 rounded-xl"></i>
+                </div>
+                <p id="statTotalOrders" class="text-2xl font-extrabold text-white mt-2">0</p>
+            </div>
+            <div class="glass rounded-2xl p-5">
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-400 text-xs font-medium">Umumiy Savdo</span>
+                    <i class="fa-solid fa-wallet text-emerald-400 bg-emerald-500/15 p-2.5 rounded-xl"></i>
+                </div>
+                <p id="statTotalRevenue" class="text-xl font-extrabold text-emerald-400 mt-2">0 so'm</p>
+            </div>
+            <div class="glass rounded-2xl p-5">
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-400 text-xs font-medium">Telegram Bot Holati</span>
+                    <i class="fa-brands fa-telegram text-sky-400 bg-sky-500/15 p-2.5 rounded-xl"></i>
+                </div>
+                <p class="text-sm font-bold text-sky-400 mt-3 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Faol ulangan
+                </p>
+            </div>
+        </div>
+
+        <!-- Admin Tablar -->
+        <div class="flex flex-wrap gap-2 mb-6 border-b border-slate-800 pb-4">
+            <button onclick="switchAdminTab('products')" id="tabBtnProducts" class="admin-tab-btn px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold flex items-center gap-2 transition">
+                <i class="fa-solid fa-laptop"></i> Noutbuklar va Narxlar
+            </button>
+            <button onclick="switchAdminTab('orders')" id="tabBtnOrders" class="admin-tab-btn px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 text-sm font-semibold flex items-center gap-2 transition">
+                <i class="fa-solid fa-receipt"></i> Buyurtmalar (<span id="ordersTabCount">0</span>)
+            </button>
+            <button onclick="switchAdminTab('telegram')" id="tabBtnTelegram" class="admin-tab-btn px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 text-sm font-semibold flex items-center gap-2 transition">
+                <i class="fa-brands fa-telegram"></i> Telegram Sozlamalari
+            </button>
+        </div>
+
+        <!-- TAB 1: NOUTBUKLARNI BOSHQARISH -->
+        <div id="adminTabProducts" class="space-y-6">
+            <!-- Yangi noutbuk qo'shish / tahrirlash formasi -->
+            <div class="glass rounded-2xl p-6">
+                <h3 id="productFormTitle" class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-plus-circle text-blue-400"></i> Yangi noutbuk qo'shish
+                </h3>
+                <form id="productForm" onsubmit="saveProduct(event)" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <input type="hidden" id="editProductId">
+                    
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5">Noutbuk nomi *</label>
+                        <input type="text" id="prodName" required placeholder="Masalan: ASUS ROG Zephyrus G14" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5">Kategoriya (Turi) *</label>
+                        <select id="prodCategory" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
+                            <option value="Gaming">Gaming</option>
+                            <option value="Ofis / Ultrabook">Ofis / Ultrabook</option>
+                            <option value="Apple MacBook">Apple MacBook</option>
+                            <option value="Hamyonbop">Hamyonbop</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5">Narxi (so'mda) *</label>
+                        <input type="number" id="prodPrice" required min="100000" step="50000" placeholder="Masalan: 14500000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5">Protsessor (CPU) *</label>
+                        <input type="text" id="prodCpu" required placeholder="Intel Core i7-13700H" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5">Tezkor xotira (RAM) *</label>
+                        <input type="text" id="prodRam" required placeholder="16GB DDR5" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5">Doimiy xotira (SSD) *</label>
+                        <input type="text" id="prodSsd" required placeholder="1TB NVMe SSD" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5">Videokarta (GPU)</label>
+                        <input type="text" id="prodGpu" placeholder="NVIDIA RTX 4060 8GB" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5">Ekran (Display)</label>
+                        <input type="text" id="prodDisplay" placeholder='15.6" FHD 144Hz IPS' class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5">Rasm URL (ixtiyoriy)</label>
+                        <input type="url" id="prodImage" placeholder="https://images.unsplash.com/..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
+                    </div>
+
+                    <div class="md:col-span-2 lg:col-span-3">
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5">Qisqacha tavsif</label>
+                        <input type="text" id="prodDesc" placeholder="Noutbuk afzalliklari haqida qisqacha ma'lumot..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:border-blue-500 focus:outline-none">
+                    </div>
+
+                    <div class="md:col-span-2 lg:col-span-3 flex items-center gap-3 pt-2">
+                        <button type="submit" class="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold shadow-lg shadow-blue-600/25 transition flex items-center gap-2">
+                            <i class="fa-solid fa-floppy-disk"></i> <span id="saveProdBtnText">Saqlash</span>
+                        </button>
+                        <button type="button" onclick="resetProductForm()" id="cancelEditBtn" class="hidden px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium transition">
+                            Bekor qilish
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Mavjud noutbuklar jadvali -->
+            <div class="glass rounded-2xl overflow-hidden">
+                <div class="p-5 border-b border-slate-800 flex items-center justify-between">
+                    <h3 class="font-bold text-white">Katalogdagi barcha noutbuklar</h3>
+                    <button onclick="resetDefaultProducts()" class="text-xs text-slate-400 hover:text-blue-400 underline">Standart ro'yxatni tiklash</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-900/80 text-slate-400 text-xs uppercase border-b border-slate-800">
+                                <th class="py-3.5 px-4">Noutbuk</th>
+                                <th class="py-3.5 px-4">Turi</th>
+                                <th class="py-3.5 px-4">Xususiyatlari</th>
+                                <th class="py-3.5 px-4">Narxi</th>
+                                <th class="py-3.5 px-4 text-right">Amallar</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminProductsTable" class="divide-y divide-slate-800/70 text-sm">
+                            <!-- Dinamik to'ldiriladi -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: BUYURTMALAR -->
+        <div id="adminTabOrders" class="hidden space-y-4">
+            <div class="glass rounded-2xl overflow-hidden">
+                <div class="p-5 border-b border-slate-800 flex items-center justify-between">
+                    <h3 class="font-bold text-white">Kelib tushgan buyurtmalar</h3>
+                    <span class="text-xs text-slate-400">Har bir buyurtma avtomatik Telegram kanalga yuboriladi</span>
+                </div>
+                <div id="adminOrdersList" class="divide-y divide-slate-800">
+                    <!-- Dinamik to'ldiriladi -->
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: TELEGRAM SOZLAMALARI -->
+        <div id="adminTabTelegram" class="hidden">
+            <div class="glass rounded-2xl p-6 max-w-2xl">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-11 h-11 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center text-xl">
+                        <i class="fa-brands fa-telegram"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-white">Telegram Bot Integratsiyasi</h3>
+                        <p class="text-xs text-slate-400">Yangi buyurtmalar ushbu bot orqali ko'rsatilgan kanalga yuboriladi</p>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5">Telegram Bot Token</label>
+                        <input type="text" id="tgTokenInput" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white font-mono focus:border-sky-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5">Telegram Kanal / Guruh ID</label>
+                        <input type="text" id="tgChatIdInput" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white font-mono focus:border-sky-500 focus:outline-none">
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-3 pt-2">
+                        <button onclick="saveTelegramSettings()" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition">
+                            Sozlamalarni saqlash
+                        </button>
+                        <button onclick="sendTestTelegram()" class="px-5 py-2.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/30 text-sm font-semibold flex items-center gap-2 transition">
+                            <i class="fa-solid fa-paper-plane"></i> Test xabar yuborish
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SAVATCHA SLIDE-OVER PANELI -->
+    <div id="cartDrawer" class="fixed inset-0 z-50 hidden">
+        <div onclick="toggleCart(false)" class="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity"></div>
+        <div class="absolute right-0 top-0 h-full w-full max-w-md bg-slate-900 border-l border-slate-800 shadow-2xl flex flex-col">
+            <div class="p-5 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-cart-shopping text-blue-400 text-lg"></i>
+                    <h3 class="text-lg font-bold text-white">Sizning savatingiz</h3>
+                </div>
+                <button onclick="toggleCart(false)" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div id="cartItemsContainer" class="flex-1 overflow-y-auto p-5 space-y-4">
+                <!-- Savat elementlari -->
+            </div>
+
+            <div id="cartFooter" class="p-5 border-t border-slate-800 bg-slate-950/80 space-y-4">
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-400 text-sm">Jami to'lov summasi:</span>
+                    <span id="cartTotalPrice" class="text-xl font-extrabold text-white">0 so'm</span>
+                </div>
+                <button onclick="openCheckoutModal()" id="proceedCheckoutBtn" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 transition">
+                    <span>Buyurtma berish va To'lov</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BUYURTMA VA TO'LOV MODALI (Click, Humo, Uzcard, Visa) -->
+    <div id="checkoutModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+        <div class="min-h-screen px-4 flex items-center justify-center py-8">
+            <div onclick="closeCheckoutModal()" class="fixed inset-0 bg-black/80 backdrop-blur-sm"></div>
+            
+            <div class="relative z-10 w-full max-w-2xl glass rounded-3xl border border-slate-700/80 shadow-2xl overflow-hidden">
+                <!-- Modal Header -->
+                <div class="p-6 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">
+                    <div>
+                        <h3 class="text-xl font-extrabold text-white">Buyurtmani rasmiylashtirish</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Ma'lumotlaringizni kiriting va to'lov turini tanlang</p>
+                    </div>
+                    <button onclick="closeCheckoutModal()" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- Buyurtma formasi -->
+                <form id="checkoutForm" onsubmit="submitOrder(event)" class="p-6 space-y-5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Ism va familiyangiz *</label>
+                            <input type="text" id="custName" required placeholder="Alisher Valiyev" class="w-full bg-slate-950/90 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Telefon raqamingiz *</label>
+                            <input type="tel" id="custPhone" required value="+998 " placeholder="+998 90 123 45 67" class="w-full bg-slate-950/90 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1.5">Yetkazib berish manzili *</label>
+                        <input type="text" id="custAddress" required placeholder="Toshkent sh., Chilonzor tumani, 7-kvartal, 12-uy" class="w-full bg-slate-950/90 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:border-blue-500 focus:outline-none">
+                    </div>
+
+                    <!-- To'lov tizimini tanlash: Click, Humo, Uzcard, Visa -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-2.5">To'lov tizimini tanlang *</label>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <!-- CLICK -->
+                            <div onclick="selectPayment('Click')" id="pay-Click" class="payment-card selected cursor-pointer rounded-2xl p-3.5 border border-slate-700 bg-slate-900/90 flex flex-col items-center justify-center gap-1.5 text-center">
+                                <div class="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center font-extrabold text-sm">
+                                    <i class="fa-solid fa-bolt text-lg"></i>
+                                </div>
+                                <span class="font-bold text-sm text-white">Click</span>
+                                <span class="text-[10px] text-slate-400">Tezkor to'lov</span>
+                            </div>
+
+                            <!-- HUMO -->
+                            <div onclick="selectPayment('Humo')" id="pay-Humo" class="payment-card cursor-pointer rounded-2xl p-3.5 border border-slate-700 bg-slate-900/90 flex flex-col items-center justify-center gap-1.5 text-center">
+                                <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-extrabold text-sm">
+                                    <i class="fa-solid fa-credit-card text-lg"></i>
+                                </div>
+                                <span class="font-bold text-sm text-white">Humo</span>
+                                <span class="text-[10px] text-slate-400">Milliy karta</span>
+                            </div>
+
+                            <!-- UZCARD -->
+                            <div onclick="selectPayment('Uzcard')" id="pay-Uzcard" class="payment-card cursor-pointer rounded-2xl p-3.5 border border-slate-700 bg-slate-900/90 flex flex-col items-center justify-center gap-1.5 text-center">
+                                <div class="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center font-extrabold text-sm">
+                                    <i class="fa-solid fa-shield-cat text-lg"></i>
+                                </div>
+                                <span class="font-bold text-sm text-white">Uzcard</span>
+                                <span class="text-[10px] text-slate-400">Onlayn karta</span>
+                            </div>
+
+                            <!-- VISA -->
+                            <div onclick="selectPayment('Visa')" id="pay-Visa" class="payment-card cursor-pointer rounded-2xl p-3.5 border border-slate-700 bg-slate-900/90 flex flex-col items-center justify-center gap-1.5 text-center">
+                                <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-extrabold text-sm">
+                                    <i class="fa-brands fa-cc-visa text-xl"></i>
+                                </div>
+                                <span class="font-bold text-sm text-white">Visa</span>
+                                <span class="text-[10px] text-slate-400">Xalqaro karta</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tanlangan karta ma'lumotlari oynasi -->
+                    <div id="cardDetailsBox" class="p-4 rounded-2xl bg-slate-950/90 border border-slate-800 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span id="selectedPaymentLabel" class="text-xs font-bold text-blue-400">Click orqali to'lov</span>
+                            <span class="text-[11px] text-emerald-400 flex items-center gap-1"><i class="fa-solid fa-lock"></i> SSL Himoyalangan</span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div class="sm:col-span-2">
+                                <input type="text" id="cardNumberInput" maxlength="19" oninput="formatCardNumber(this)" placeholder="8600 •••• •••• •••• (Karta raqami)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white font-mono focus:border-blue-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <input type="text" id="cardExpiryInput" maxlength="5" oninput="formatExpiry(this)" placeholder="MM/YY" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white font-mono text-center focus:border-blue-500 focus:outline-none">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Jami summa va Tasdiqlash -->
+                    <div class="pt-2 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <span class="text-xs text-slate-400 block">To'lanadigan jami summa:</span>
+                            <span id="checkoutTotalDisplay" class="text-2xl font-extrabold text-white">0 so'm</span>
+                        </div>
+                        <button type="submit" id="submitOrderBtn" class="px-7 py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-sm shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2 transition">
+                            <i class="fa-solid fa-check-circle"></i>
+                            <span>To'lovni amalga oshirish</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOUTBUK BATAFSIL MA'LUMOT MODALI -->
+    <div id="productDetailModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+        <div class="min-h-screen px-4 flex items-center justify-center py-8">
+            <div onclick="closeDetailModal()" class="fixed inset-0 bg-black/80 backdrop-blur-sm"></div>
+            <div id="productDetailContent" class="relative z-10 w-full max-w-2xl glass rounded-3xl border border-slate-700 overflow-hidden shadow-2xl">
+                <!-- Dinamik to'ldiriladi -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN PAROL MODALI -->
+    <div id="adminPinModal" class="fixed inset-0 z-50 hidden">
+        <div class="min-h-screen px-4 flex items-center justify-center">
+            <div onclick="closeAdminGate()" class="fixed inset-0 bg-black/80 backdrop-blur-sm"></div>
+            <div class="relative z-10 w-full max-w-sm glass rounded-3xl p-6 border border-slate-700 text-center space-y-4">
+                <div class="w-14 h-14 rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-2xl mx-auto">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-extrabold text-white">Admin Panelga kirish</h3>
+                    <p class="text-xs text-slate-400 mt-1">Boshqaruv paneliga o'tish uchun PIN kodni kiriting <br><span class="text-blue-400 font-semibold">(Demo PIN: 1234)</span></p>
+                </div>
+                <form onsubmit="verifyAdminPin(event)" class="space-y-3">
+                    <input type="password" id="adminPinInput" maxlength="6" required placeholder="••••" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-center text-xl tracking-widest font-bold text-white focus:border-purple-500 focus:outline-none">
+                    <div class="flex gap-2">
+                        <button type="button" onclick="closeAdminGate()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold">Bekor qilish</button>
+                        <button type="submit" class="flex-1 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-sm font-semibold">Kirish</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800/80 bg-slate-950/90 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-2.5">
+                <span class="text-lg font-extrabold text-white">NUR <span class="text-blue-400">SHOP</span></span>
+                <span class="text-slate-600">|</span>
+                <span class="text-xs text-slate-400">© 2026 Barcha huquqlar himoyalangan</span>
+            </div>
+            <div class="flex items-center gap-4 text-xs text-slate-400">
+                <span>To'lov turlari: <strong class="text-slate-200">Click, Humo, Uzcard, Visa</strong></span>
+                <button onclick="openAdminGate()" class="text-blue-400 hover:underline">Admin boshqaruvi</button>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // ==========================================
+        // 1. BOSHLANG'ICH MA'LUMOTLAR VA SOZLAMALAR
+        // ==========================================
+        const DEFAULT_TG_TOKEN = '9188659208:AAFPODVMKY8sIcvRGNKC-oaYJ0JK0S6x_9Q';
+        const DEFAULT_TG_CHAT_ID = '-1004473703990';
+
+        const DEFAULT_PRODUCTS = [
+            {
+                id: 'nb-1',
+                name: 'Apple MacBook Pro 14" M3 Pro',
+                category: 'Apple MacBook',
+                price: 26500000,
+                cpu: 'Apple M3 Pro (11-yadro)',
+                ram: '18GB Unified RAM',
+                ssd: '512GB NVMe SSD',
+                gpu: '14-yadro Apple GPU',
+                display: '14.2" Liquid Retina XDR 120Hz',
+                image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80',
+                desc: 'Dasturchilar, video montaj ustalari va dizaynerlar uchun eng kuchli va ixcham professional noutbuk.'
+            },
+            {
+                id: 'nb-2',
+                name: 'ASUS ROG Strix G16 (2025)',
+                category: 'Gaming',
+                price: 19800000,
+                cpu: 'Intel Core i7-13650HX',
+                ram: '16GB DDR5 4800MHz',
+                ssd: '1TB PCIe 4.0 SSD',
+                gpu: 'NVIDIA GeForce RTX 4060 8GB',
+                display: '16.0" FHD+ 165Hz IPS',
+                image: 'https://images.unsplash.com/photo-1603302576837-37561b2e2302?auto=format&fit=crop&w=800&q=80',
+                desc: 'Og‘ir o‘yinlar va 3D modellashtirish uchun maxsus sovutish tizimiga ega haqiqiy gaming flagmani.'
+            },
+            {
+                id: 'nb-3',
+                name: 'Lenovo ThinkPad X1 Carbon Gen 11',
+                category: 'Ofis / Ultrabook',
+                price: 17200000,
+                cpu: 'Intel Core i7-1355U',
+                ram: '16GB LPDDR5',
+                ssd: '512GB NVMe SSD',
+                gpu: 'Intel Iris Xe Graphics',
+                display: '14.0" WUXGA IPS Anti-Glare',
+                image: 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?auto=format&fit=crop&w=800&q=80',
+                desc: 'Atigi 1.12 kg og‘irlikdagi karbon korpusli biznes-klass ultrabuk. Uzoq quvvat saqlash va yuqori xavfsizlik.'
+            },
+            {
+                id: 'nb-4',
+                name: 'Apple MacBook Air 13" M2',
+                category: 'Apple MacBook',
+                price: 13900000,
+                cpu: 'Apple M2 (8-yadro)',
+                ram: '8GB Unified RAM',
+                ssd: '256GB SSD',
+                gpu: '8-yadro Apple GPU',
+                display: '13.6" Liquid Retina',
+                image: 'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?auto=format&fit=crop&w=800&q=80',
+                desc: 'Yengil, shovqinsiz va 18 soatgacha batareya quvvatiga ega kundalik ish va o‘qish uchun ideal tanlov.'
+            },
+            {
+                id: 'nb-5',
+                name: 'Acer Nitro V 15 Gaming',
+                category: 'Gaming',
+                price: 11400000,
+                cpu: 'Intel Core i5-13420H',
+                ram: '16GB DDR5',
+                ssd: '512GB NVMe SSD',
+                gpu: 'NVIDIA GeForce RTX 4050 6GB',
+                display: '15.6" Full HD 144Hz',
+                image: 'https://images.unsplash.com/photo-1593642632823-8f785ba67e45?auto=format&fit=crop&w=800&q=80',
+                desc: 'Hamyonbop narxda yuqori FPS va zamonaviy RTX texnologiyalarini taqdim etuvchi o‘yin noutbuki.'
+            },
+            {
+                id: 'nb-6',
+                name: 'HP Pavilion Aero 13',
+                category: 'Ofis / Ultrabook',
+                price: 9800000,
+                cpu: 'AMD Ryzen 7 7735U',
+                ram: '16GB LPDDR5',
+                ssd: '512GB SSD',
+                gpu: 'AMD Radeon 680M',
+                display: '13.3" WUXGA 400 nits',
+                image: 'https://images.unsplash.com/photo-1541807084-5c52b6b3adef?auto=format&fit=crop&w=800&q=80',
+                desc: '1 kilogrammdan ham yengil, yorqin ekranli va tezkor Ryzen protsessorli zamonaviy ultrabuk.'
+            },
+            {
+                id: 'nb-7',
+                name: 'Lenovo IdeaPad Slim 3',
+                category: 'Hamyonbop',
+                price: 6200000,
+                cpu: 'Intel Core i5-12450H',
+                ram: '8GB DDR5',
+                ssd: '512GB NVMe SSD',
+                gpu: 'Intel UHD Graphics',
+                display: '15.6" Full HD IPS',
+                image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=800&q=80',
+                desc: 'Talabalar, ofis xodimlari va uy foydalanuvchilari uchun eng yaxshi narx va sifat uyg‘unligi.'
+            },
+            {
+                id: 'nb-8',
+                name: 'ASUS VivoBook 15 OLED',
+                category: 'Hamyonbop',
+                price: 7950000,
+                cpu: 'AMD Ryzen 5 7530U',
+                ram: '16GB DDR4',
+                ssd: '512GB SSD',
+                gpu: 'AMD Radeon Graphics',
+                display: '15.6" Full HD OLED',
+                image: 'https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?auto=format&fit=crop&w=800&q=80',
+                desc: 'Ko‘zni charchatmaydigan jonli OLED ekran va tezkor ishlash imkoniyatiga ega zamonaviy noutbuk.'
+            }
+        ];
+
+        // Ilova holati (State)
+        let products = JSON.parse(localStorage.getItem('nurshop_products')) || DEFAULT_PRODUCTS;
+        let cart = JSON.parse(localStorage.getItem('nurshop_cart')) || [];
+        let orders = JSON.parse(localStorage.getItem('nurshop_orders')) || [];
+        let tgSettings = JSON.parse(localStorage.getItem('nurshop_tg')) || {
+            token: DEFAULT_TG_TOKEN,
+            chatId: DEFAULT_TG_CHAT_ID
+        };
+
+        let currentCategory = 'Barchasi';
+        let searchQuery = '';
+        let selectedPayment = 'Click';
+        let isAdminAuthenticated = false;
+
+        // ==========================================
+        // 2. YORDAMCHI FUNKSIYALAR
+        // ==========================================
+        function formatPrice(price) {
+            return Number(price).toLocaleString('uz-UZ') + " so'm";
+        }
+
+        function saveState() {
+            localStorage.setItem('nurshop_products', JSON.stringify(products));
+            localStorage.setItem('nurshop_cart', JSON.stringify(cart));
+            localStorage.setItem('nurshop_orders', JSON.stringify(orders));
+            localStorage.setItem('nurshop_tg', JSON.stringify(tgSettings));
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            const colors = {
+                success: 'bg-emerald-950/95 border-emerald-500/50 text-emerald-200',
+                error: 'bg-rose-950/95 border-rose-500/50 text-rose-200',
+                info: 'bg-blue-950/95 border-blue-500/50 text-blue-200'
+            };
+            const icons = {
+                success: 'fa-circle-check text-emerald-400',
+                error: 'fa-circle-exclamation text-rose-400',
+                info: 'fa-circle-info text-blue-400'
+            };
+
+            toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3.5 rounded-2xl border shadow-2xl backdrop-blur-md text-sm font-medium transition-all duration-300 ${colors[type]}`;
+            toast.innerHTML = `<i class="fa-solid ${icons[type]} text-base"></i><span>${message}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(20px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        // ==========================================
+        // 3. DO'KON KATALOGINI CHIZISH VA FILTRLASH
+        // ==========================================
+        function renderProducts() {
+            const grid = document.getElementById('productsGrid');
+            const emptyState = document.getElementById('emptyProductsState');
+
+            const filtered = products.filter(p => {
+                const matchCat = currentCategory === 'Barchasi' || p.category === currentCategory;
+                const q = searchQuery.toLowerCase();
+                const matchSearch = !q ||
+                    p.name.toLowerCase().includes(q) ||
+                    p.cpu.toLowerCase().includes(q) ||
+                    p.ram.toLowerCase().includes(q) ||
+                    p.category.toLowerCase().includes(q);
+                return matchCat && matchSearch;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            grid.innerHTML = filtered.map(p => `
+                <div class="glass-card rounded-2xl overflow-hidden flex flex-col justify-between group">
+                    <div>
+                        <!-- Rasm qismi -->
+                        <div class="relative h-48 bg-slate-900 overflow-hidden cursor-pointer" onclick="openDetailModal('${p.id}')">
+                            <img src="${p.image || 'https://placehold.co/600x400/111827/60a5fa?text=NUR+SHOP'}" 
+                                 onerror="this.src='https://placehold.co/600x400/111827/60a5fa?text=NUR+SHOP'"
+                                 alt="${p.name}" 
+                                 class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                            <span class="absolute top-3 left-3 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-950/80 backdrop-blur-md text-blue-400 border border-blue-500/30">
+                                ${p.category}
+                            </span>
+                        </div>
+
+                        <!-- Ma'lumotlar -->
+                        <div class="p-5">
+                            <h3 onclick="openDetailModal('${p.id}')" class="font-bold text-white text-base leading-snug hover:text-blue-400 cursor-pointer transition line-clamp-1">
+                                ${p.name}
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-1 line-clamp-2">${p.desc || 'Zamonaviy va yuqori unumdorlikka ega noutbuk.'}</p>
+
+                            <!-- Texnik ko'rsatkichlar badge -->
+                            <div class="grid grid-cols-2 gap-1.5 mt-4 text-[11px] text-slate-300">
+                                <div class="bg-slate-900/90 px-2.5 py-1.5 rounded-lg border border-slate-800 truncate" title="${p.cpu}">
+                                    <i class="fa-solid fa-microchip text-blue-400 mr-1"></i> ${p.cpu}
+                                </div>
+                                <div class="bg-slate-900/90 px-2.5 py-1.5 rounded-lg border border-slate-800 truncate">
+                                    <i class="fa-solid fa-memory text-purple-400 mr-1"></i> ${p.ram}
+                                </div>
+                                <div class="bg-slate-900/90 px-2.5 py-1.5 rounded-lg border border-slate-800 truncate">
+                                    <i class="fa-solid fa-hard-drive text-emerald-400 mr-1"></i> ${p.ssd}
+                                </div>
+                                <div class="bg-slate-900/90 px-2.5 py-1.5 rounded-lg border border-slate-800 truncate" title="${p.gpu || 'Integratsiyalashgan'}">
+                                    <i class="fa-solid fa-display text-amber-400 mr-1"></i> ${p.gpu || 'Integrated'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Narx va Savatga qo'shish tugmasi -->
+                    <div class="px-5 pb-5 pt-2 flex items-center justify-between gap-2 border-t border-slate-800/60 mt-auto">
+                        <div>
+                            <span class="text-[11px] text-slate-400 block">Narxi:</span>
+                            <span class="text-base font-extrabold text-white">${formatPrice(p.price)}</span>
+                        </div>
+                        <button onclick="addToCart('${p.id}')" class="px-3.5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-blue-600/20 transition">
+                            <i class="fa-solid fa-cart-plus"></i>
+                            <span>Savatga</span>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterCategory(cat) {
+            currentCategory = cat;
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                if (btn.dataset.cat === cat) {
+                    btn.className = 'cat-btn active px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-blue-600 text-white transition';
+                } else {
+                    btn.className = 'cat-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-800/90 text-slate-300 hover:bg-slate-700 transition';
+                }
+            });
+            renderProducts();
+        }
+
+        function handleSearch(val) {
+            searchQuery = val.trim();
+            document.getElementById('searchInput').value = val;
+            document.getElementById('mobileSearchInput').value = val;
+            renderProducts();
+        }
+
+        function resetFilters() {
+            currentCategory = 'Barchasi';
+            searchQuery = '';
+            document.getElementById('searchInput').value = '';
+            document.getElementById('mobileSearchInput').value = '';
+            filterCategory('Barchasi');
+        }
+
+        function openDetailModal(id) {
+            const p = products.find(item => item.id === id);
+            if (!p) return;
+            const modal = document.getElementById('productDetailModal');
+            const content = document.getElementById('productDetailContent');
+
+            content.innerHTML = `
+                <div class="relative">
+                    <img src="${p.image || 'https://placehold.co/800x450/111827/60a5fa?text=NUR+SHOP'}" onerror="this.src='https://placehold.co/800x450/111827/60a5fa?text=NUR+SHOP'" class="w-full h-64 object-cover">
+                    <button onclick="closeDetailModal()" class="absolute top-4 right-4 w-10 h-10 rounded-xl bg-slate-950/80 text-white hover:bg-slate-800 flex items-center justify-center">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                    <span class="absolute bottom-4 left-4 px-3 py-1 rounded-lg bg-blue-600 text-white text-xs font-bold">${p.category}</span>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <h3 class="text-2xl font-extrabold text-white">${p.name}</h3>
+                        <span class="text-xl font-extrabold text-blue-400">${formatPrice(p.price)}</span>
+                    </div>
+                    <p class="text-sm text-slate-300 leading-relaxed">${p.desc || ''}</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                        <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+                            <span class="text-xs text-slate-400 block">Protsessor (CPU)</span>
+                            <span class="text-sm font-bold text-white">${p.cpu}</span>
+                        </div>
+                        <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+                            <span class="text-xs text-slate-400 block">Tezkor xotira (RAM)</span>
+                            <span class="text-sm font-bold text-white">${p.ram}</span>
+                        </div>
+                        <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+                            <span class="text-xs text-slate-400 block">Doimiy xotira (SSD)</span>
+                            <span class="text-sm font-bold text-white">${p.ssd}</span>
+                        </div>
+                        <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+                            <span class="text-xs text-slate-400 block">Videokarta va Ekran</span>
+                            <span class="text-sm font-bold text-white">${p.gpu || 'Integrated'} • ${p.display || 'Full HD'}</span>
+                        </div>
+                    </div>
+                    <div class="pt-4 flex justify-end gap-3">
+                        <button onclick="closeDetailModal()" class="px-5 py-2.5 rounded-xl bg-slate-800 text-slate-300 text-sm font-semibold">Yopish</button>
+                        <button onclick="addToCart('${p.id}'); closeDetailModal();" class="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-cart-plus"></i> Savatga qo'shish
+                        </button>
+                    </div>
+                </div>
+            `;
+            modal.classList.remove('hidden');
+        }
+
+        function closeDetailModal() {
+            document.getElementById('productDetailModal').classList.add('hidden');
+        }
+
+        // ==========================================
+        // 4. SAVATCHA VA BUYURTMA TIZIMI
+        // ==========================================
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+
+            const existing = cart.find(item => item.id === productId);
+            if (existing) {
+                existing.qty += 1;
+            } else {
+                cart.push({
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    image: product.image,
+                    qty: 1
+                });
+            }
+            saveState();
+            updateCartUI();
+            showToast(`"${product.name}" savatga qo'shildi!`, 'success');
+        }
+
+        function updateCartQty(productId, delta) {
+            const index = cart.findIndex(item => item.id === productId);
+            if (index === -1) return;
+
+            cart[index].qty += delta;
+            if (cart[index].qty <= 0) {
+                cart.splice(index, 1);
+            }
+            saveState();
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const badge = document.getElementById('cartBadge');
+            const container = document.getElementById('cartItemsContainer');
+            const totalDisplay = document.getElementById('cartTotalPrice');
+            const checkoutBtn = document.getElementById('proceedCheckoutBtn');
+
+            const totalCount = cart.reduce((sum, item) => sum + item.qty, 0);
+            const totalSum = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+            badge.textContent = totalCount;
+            totalDisplay.textContent = formatPrice(totalSum);
+
+            if (cart.length === 0) {
+                checkoutBtn.disabled = true;
+                checkoutBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                container.innerHTML = `
+                    <div class="text-center py-16">
+                        <div class="w-16 h-16 rounded-2xl bg-slate-800/80 text-slate-500 flex items-center justify-center text-2xl mx-auto mb-3">
+                            <i class="fa-solid fa-cart-arrow-down"></i>
+                        </div>
+                        <h4 class="text-white font-bold">Savatingiz hozircha bo'sh</h4>
+                        <p class="text-xs text-slate-400 mt-1">Katalogdan yoqqan noutbukni tanlang</p>
+                    </div>
+                `;
+                return;
+            }
+
+            checkoutBtn.disabled = false;
+            checkoutBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+            container.innerHTML = cart.map(item => `
+                <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800">
+                    <img src="${item.image || 'https://placehold.co/150x150/111827/60a5fa?text=Laptop'}" onerror="this.src='https://placehold.co/150x150/111827/60a5fa?text=Laptop'" class="w-16 h-16 rounded-xl object-cover shrink-0">
+                    <div class="flex-1 min-w-0">
+                        <h4 class="text-sm font-bold text-white truncate">${item.name}</h4>
+                        <p class="text-xs text-blue-400 font-semibold mt-0.5">${formatPrice(item.price)}</p>
+                        <div class="flex items-center gap-2 mt-2">
+                            <button onclick="updateCartQty('${item.id}', -1)" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs flex items-center justify-center">
+                                <i class="fa-solid fa-minus"></i>
+                            </button>
+                            <span class="text-xs font-bold text-white w-5 text-center">${item.qty}</span>
+                            <button onclick="updateCartQty('${item.id}', 1)" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs flex items-center justify-center">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button onclick="updateCartQty('${item.id}', -${item.qty})" class="text-slate-500 hover:text-rose-400 p-1.5 transition" title="O'chirish">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function toggleCart(show) {
+            const drawer = document.getElementById('cartDrawer');
+            if (show) {
+                drawer.classList.remove('hidden');
+            } else {
+                drawer.classList.add('hidden');
+            }
+        }
+
+        // ==========================================
+        // 5. CHECKOUT VA TO'LOV TIZIMLARI (Click, Humo, Uzcard, Visa)
+        // ==========================================
+        function openCheckoutModal() {
+            if (cart.length === 0) return;
+            toggleCart(false);
+            const totalSum = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            document.getElementById('checkoutTotalDisplay').textContent = formatPrice(totalSum);
+            selectPayment('Click');
+            document.getElementById('checkoutModal').classList.remove('hidden');
+        }
+
+        function closeCheckoutModal() {
+            document.getElementById('checkoutModal').classList.add('hidden');
+        }
+
+        function selectPayment(method) {
+            selectedPayment = method;
+            document.querySelectorAll('.payment-card').forEach(el => el.classList.remove('selected'));
+            const activeCard = document.getElementById(`pay-${method}`);
+            if (activeCard) activeCard.classList.add('selected');
+
+            const label = document.getElementById('selectedPaymentLabel');
+            const cardInput = document.getElementById('cardNumberInput');
+            const placeholders = {
+                'Click': '8600 •••• •••• •••• (Click / Uzcard / Humo)',
+                'Humo': '9860 •••• •••• •••• (Humo karta raqami)',
+                'Uzcard': '8600 •••• •••• •••• (Uzcard karta raqami)',
+                'Visa': '4278 •••• •••• •••• (Visa karta raqami)'
+            };
+            label.textContent = `${method} tizimi orqali onlayn to'lov`;
+            cardInput.placeholder = placeholders[method];
+        }
+
+        function formatCardNumber(input) {
+            let v = input.value.replace(/\D/g, '').substring(0, 16);
+            input.value = v.replace(/(.{4})/g, '$1 ').trim();
+        }
+
+        function formatExpiry(input) {
+            let v = input.value.replace(/\D/g, '').substring(0, 4);
+            if (v.length >= 3) {
+                input.value = v.substring(0, 2) + '/' + v.substring(2);
+            } else {
+                input.value = v;
+            }
+        }
+
+        // ==========================================
+        // 6. TELEGRAM BOT INTEGRATSIYASI
+        // ==========================================
+        async function sendTelegramNotification(order) {
+            const token = tgSettings.token || DEFAULT_TG_TOKEN;
+            const chatId = tgSettings.chatId || DEFAULT_TG_CHAT_ID;
+
+            const itemsText = order.items.map((item, idx) =>
+                `${idx + 1}. <b>${item.name}</b> — ${item.qty} dona × ${formatPrice(item.price)}`
+            ).join('\n');
+
+            const message = `🛒 <b>YANGI BUYURTMA — NUR SHOP</b>\n` +
+                `🆔 <b>Buyurtma ID:</b> #${order.id}\n` +
+                `📅 <b>Sana:</b> ${order.date}\n\n` +
+                `👤 <b>Mijoz:</b> ${order.customerName}\n` +
+                `📞 <b>Telefon:</b> ${order.phone}\n` +
+                `📍 <b>Manzil:</b> ${order.address}\n` +
+                `💳 <b>To'lov turi:</b> ${order.paymentMethod} ✅\n\n` +
+                `💻 <b>Buyurtma tarkibi:</b>\n${itemsText}\n\n` +
+                `💰 <b>JAMI SUMMA:</b> <b>${formatPrice(order.total)}</b>`;
+
+            try {
+                const url = `https://api.telegram.org/bot${token}/sendMessage`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: chatId,
+                        text: message,
+                        parse_mode: 'HTML'
+                    })
+                });
+                const data = await response.json();
+                return data.ok === true;
+            } catch (err) {
+                console.warn('Telegram API so‘rov xatosi:', err);
+                return false;
+            }
+        }
+
+        async function submitOrder(e) {
+            e.preventDefault();
+            if (cart.length === 0) return;
+
+            const btn = document.getElementById('submitOrderBtn');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>To'lov amalga oshirilmoqda...</span>`;
+
+            const custName = document.getElementById('custName').value.trim();
+            const custPhone = document.getElementById('custPhone').value.trim();
+            const custAddress = document.getElementById('custAddress').value.trim();
+            const totalSum = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+            const newOrder = {
+                id: Math.floor(100000 + Math.random() * 900000),
+                date: new Date().toLocaleString('uz-UZ'),
+                customerName: custName,
+                phone: custPhone,
+                address: custAddress,
+                paymentMethod: selectedPayment,
+                items: [...cart],
+                total: totalSum,
+                status: 'Yangi'
+            };
+
+            // Telegram kanalga xabar yuborish
+            const tgSent = await sendTelegramNotification(newOrder);
+            newOrder.tgSent = tgSent;
+
+            // Buyurtmani saqlash va savatni tozalash
+            orders.unshift(newOrder);
+            cart = [];
+            saveState();
+            updateCartUI();
+
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fa-solid fa-check-circle"></i> <span>To'lovni amalga oshirish</span>`;
+            document.getElementById('checkoutForm').reset();
+            document.getElementById('custPhone').value = '+998 ';
+            closeCheckoutModal();
+
+            if (tgSent) {
+                showToast(`Buyurtma #${newOrder.id} qabul qilindi va Telegram kanalga yuborildi!`, 'success');
+            } else {
+                showToast(`Buyurtma #${newOrder.id} (${selectedPayment}) muvaffaqiyatli rasmiylashtirildi!`, 'success');
+            }
+        }
+
+        // ==========================================
+        // 7. ADMIN PANEL BOSHQARUVI
+        // ==========================================
+        function openAdminGate() {
+            if (isAdminAuthenticated) {
+                switchView('admin');
+                return;
+            }
+            document.getElementById('adminPinInput').value = '';
+            document.getElementById('adminPinModal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('adminPinInput').focus(), 100);
+        }
+
+        function closeAdminGate() {
+            document.getElementById('adminPinModal').classList.add('hidden');
+        }
+
+        function verifyAdminPin(e) {
+            e.preventDefault();
+            const pin = document.getElementById('adminPinInput').value.trim();
+            if (pin === '1234') {
+                isAdminAuthenticated = true;
+                closeAdminGate();
+                switchView('admin');
+                showToast('Admin Panelga xush kelibsiz!', 'info');
+            } else {
+                showToast('Noto‘g‘ri PIN kod! (Demo PIN: 1234)', 'error');
+            }
+        }
+
+        function logoutAdmin() {
+            isAdminAuthenticated = false;
+            switchView('store');
+            showToast('Admin paneldan chiqildi', 'info');
+        }
+
+        function switchView(view) {
+            const storeView = document.getElementById('storeView');
+            const adminView = document.getElementById('adminView');
+
+            if (view === 'admin') {
+                storeView.classList.add('hidden');
+                adminView.classList.remove('hidden');
+                renderAdminDashboard();
+            } else {
+                adminView.classList.add('hidden');
+                storeView.classList.remove('hidden');
+                renderProducts();
+            }
+        }
+
+        function switchAdminTab(tab) {
+            ['products', 'orders', 'telegram'].forEach(t => {
+                const cap = t.charAt(0).toUpperCase() + t.slice(1);
+                document.getElementById(`adminTab${cap}`).classList.toggle('hidden', t !== tab);
+                const btn = document.getElementById(`tabBtn${cap}`);
+                if (t === tab) {
+                    btn.className = 'admin-tab-btn px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold flex items-center gap-2 transition';
+                } else {
+                    btn.className = 'admin-tab-btn px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 text-sm font-semibold flex items-center gap-2 transition';
+                }
+            });
+        }
+
+        function renderAdminDashboard() {
+            // Statistika
+            document.getElementById('statTotalProducts').textContent = products.length;
+            document.getElementById('statTotalOrders').textContent = orders.length;
+            document.getElementById('ordersTabCount').textContent = orders.length;
+            const totalRev = orders.reduce((sum, o) => sum + o.total, 0);
+            document.getElementById('statTotalRevenue').textContent = formatPrice(totalRev);
+
+            // Telegram inputlar
+            document.getElementById('tgTokenInput').value = tgSettings.token;
+            document.getElementById('tgChatIdInput').value = tgSettings.chatId;
+
+            // Noutbuklar jadvali
+            const tbody = document.getElementById('adminProductsTable');
+            tbody.innerHTML = products.map(p => `
+                <tr class="hover:bg-slate-900/50 transition">
+                    <td class="py-3.5 px-4">
+                        <div class="flex items-center gap-3">
+                            <img src="${p.image || 'https://placehold.co/100x100/111827/60a5fa?text=NB'}" onerror="this.src='https://placehold.co/100x100/111827/60a5fa?text=NB'" class="w-11 h-11 rounded-xl object-cover">
+                            <div>
+                                <p class="font-bold text-white">${p.name}</p>
+                                <p class="text-xs text-slate-400 line-clamp-1">${p.desc || ''}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-3.5 px-4">
+                        <span class="px-2.5 py-1 rounded-lg bg-blue-500/15 text-blue-400 text-xs font-semibold">${p.category}</span>
+                    </td>
+                    <td class="py-3.5 px-4 text-xs text-slate-300">
+                        ${p.cpu} • ${p.ram} • ${p.ssd}
+                    </td>
+                    <td class="py-3.5 px-4 font-extrabold text-emerald-400 whitespace-nowrap">
+                        ${formatPrice(p.price)}
+                    </td>
+                    <td class="py-3.5 px-4 text-right whitespace-nowrap">
+                        <button onclick="editProduct('${p.id}')" class="p-2 rounded-lg bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white mr-1.5 transition" title="Tahrirlash">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <button onclick="deleteProduct('${p.id}')" class="p-2 rounded-lg bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white transition" title="O'chirish">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
+            // Buyurtmalar ro'yxati
+            const ordersContainer = document.getElementById('adminOrdersList');
+            if (orders.length === 0) {
+                ordersContainer.innerHTML = `<div class="p-10 text-center text-slate-400 text-sm">Hozircha buyurtmalar kelib tushmagan.</div>`;
+            } else {
+                ordersContainer.innerHTML = orders.map(o => `
+                    <div class="p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:bg-slate-900/40 transition">
+                        <div class="space-y-1.5">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="font-extrabold text-white text-base">#${o.id}</span>
+                                <span class="px-2.5 py-0.5 rounded-md text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                                    💳 ${o.paymentMethod}
+                                </span>
+                                <span class="text-xs text-slate-400">${o.date}</span>
+                            </div>
+                            <p class="text-sm text-slate-200">
+                                <strong>${o.customerName}</strong> • <span class="text-blue-400">${o.phone}</span> • <span class="text-slate-400">${o.address}</span>
+                            </p>
+                            <div class="text-xs text-slate-300 bg-slate-950/70 p-2.5 rounded-xl border border-slate-800/80">
+                                ${o.items.map(i => `${i.name} (${i.qty} dona)`).join(', ')}
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-3 shrink-0">
+                            <span class="text-lg font-extrabold text-emerald-400">${formatPrice(o.total)}</span>
+                            <select onchange="changeOrderStatus(${o.id}, this.value)" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-semibold text-white focus:outline-none">
+                                <option value="Yangi" ${o.status === 'Yangi' ? 'selected' : ''}>🟡 Yangi</option>
+                                <option value="Yetkazilmoqda" ${o.status === 'Yetkazilmoqda' ? 'selected' : ''}>🚚 Yetkazilmoqda</option>
+                                <option value="Yakunlandi" ${o.status === 'Yakunlandi' ? 'selected' : ''}>✅ Yakunlandi</option>
+                            </select>
+                            <button onclick="resendOrderToTelegram(${o.id})" class="px-3 py-2 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 text-xs font-semibold flex items-center gap-1.5 transition" title="Telegramga qayta yuborish">
+                                <i class="fa-brands fa-telegram"></i> Yuborish
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function saveProduct(e) {
+            e.preventDefault();
+            const editId = document.getElementById('editProductId').value;
+            const productData = {
+                id: editId || 'nb-' + Date.now(),
+                name: document.getElementById('prodName').value.trim(),
+                category: document.getElementById('prodCategory').value,
+                price: Number(document.getElementById('prodPrice').value),
+                cpu: document.getElementById('prodCpu').value.trim(),
+                ram: document.getElementById('prodRam').value.trim(),
+                ssd: document.getElementById('prodSsd').value.trim(),
+                gpu: document.getElementById('prodGpu').value.trim() || 'Integrated Graphics',
+                display: document.getElementById('prodDisplay').value.trim() || '15.6" Full HD',
+                image: document.getElementById('prodImage').value.trim() || 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=800&q=80',
+                desc: document.getElementById('prodDesc').value.trim()
+            };
+
+            if (editId) {
+                const idx = products.findIndex(p => p.id === editId);
+                if (idx !== -1) products[idx] = productData;
+                showToast('Noutbuk ma‘lumotlari yangilandi!', 'success');
+            } else {
+                products.unshift(productData);
+                showToast('Yangi noutbuk katalogga qo‘shildi!', 'success');
+            }
+
+            saveState();
+            resetProductForm();
+            renderAdminDashboard();
+        }
+
+        function editProduct(id) {
+            const p = products.find(item => item.id === id);
+            if (!p) return;
+
+            document.getElementById('editProductId').value = p.id;
+            document.getElementById('prodName').value = p.name;
+            document.getElementById('prodCategory').value = p.category;
+            document.getElementById('prodPrice').value = p.price;
+            document.getElementById('prodCpu').value = p.cpu;
+            document.getElementById('prodRam').value = p.ram;
+            document.getElementById('prodSsd').value = p.ssd;
+            document.getElementById('prodGpu').value = p.gpu || '';
+            document.getElementById('prodDisplay').value = p.display || '';
+            document.getElementById('prodImage').value = p.image || '';
+            document.getElementById('prodDesc').value = p.desc || '';
+
+            document.getElementById('productFormTitle').innerHTML = `<i class="fa-solid fa-pen-to-square text-amber-400"></i> Noutbukni tahrirlash: ${p.name}`;
+            document.getElementById('saveProdBtnText').textContent = 'O‘zgarishlarni saqlash';
+            document.getElementById('cancelEditBtn').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function resetProductForm() {
+            document.getElementById('productForm').reset();
+            document.getElementById('editProductId').value = '';
+            document.getElementById('productFormTitle').innerHTML = `<i class="fa-solid fa-plus-circle text-blue-400"></i> Yangi noutbuk qo'shish`;
+            document.getElementById('saveProdBtnText').textContent = 'Saqlash';
+            document.getElementById('cancelEditBtn').classList.add('hidden');
+        }
+
+        function deleteProduct(id) {
+            products = products.filter(p => p.id !== id);
+            saveState();
+            renderAdminDashboard();
+            showToast('Noutbuk katalogdan o‘chirildi', 'info');
+        }
+
+        function resetDefaultProducts() {
+            products = [...DEFAULT_PRODUCTS];
+            saveState();
+            renderAdminDashboard();
+            showToast('Standart noutbuklar ro‘yxati tiklandi', 'success');
+        }
+
+        function changeOrderStatus(orderId, newStatus) {
+            const order = orders.find(o => o.id === orderId);
+            if (order) {
+                order.status = newStatus;
+                saveState();
+                showToast(`Buyurtma #${orderId} holati: ${newStatus}`, 'info');
+            }
+        }
+
+        async function resendOrderToTelegram(orderId) {
+            const order = orders.find(o => o.id === orderId);
+            if (!order) return;
+            const ok = await sendTelegramNotification(order);
+            if (ok) {
+                showToast(`Buyurtma #${orderId} Telegram kanalga yuborildi!`, 'success');
+            } else {
+                showToast('Telegramga yuborishda xatolik yuz berdi. Token va Kanal ID ni tekshiring.', 'error');
+            }
+        }
+
+        function saveTelegramSettings() {
+            tgSettings.token = document.getElementById('tgTokenInput').value.trim();
+            tgSettings.chatId = document.getElementById('tgChatIdInput').value.trim();
+            saveState();
+            showToast('Telegram sozlamalari saqlandi!', 'success');
+        }
+
+        async function sendTestTelegram() {
+            saveTelegramSettings();
+            const testOrder = {
+                id: 'TEST-001',
+                date: new Date().toLocaleString('uz-UZ'),
+                customerName: 'NUR SHOP Admin Test',
+                phone: '+998 90 000 00 00',
+                address: 'Toshkent shahri (Test xabar)',
+                paymentMethod: 'Click / Humo / Uzcard / Visa',
+                items: [{ name: 'Apple MacBook Pro 14" M3 Pro', qty: 1, price: 26500000 }],
+                total: 26500000
+            };
+            const ok = await sendTelegramNotification(testOrder);
+            if (ok) {
+                showToast('Test xabar Telegram kanalga muvaffaqiyatli yuborildi!', 'success');
+            } else {
+                showToast('Xabar yuborilmadi. Bot kanalga Admin qilinganini tekshiring!', 'error');
+            }
+        }
+
+        // Ilovani ishga tushirish
+        window.addEventListener('DOMContentLoaded', () => {
+            renderProducts();
+            updateCartUI();
+        });
+    </script>
+</body>
+</html>
